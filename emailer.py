@@ -13,17 +13,27 @@ import time
 parser = argparse.ArgumentParser()
 parser.add_argument('email_csv')
 parser.add_argument('text')
+parser.add_argument('--ignore', default='na')
+parser.add_argument('--debug', action='store_true')
 
 def main(args):
     df = [str(x) for x in pd.read_csv(args.email_csv)['Email'].tolist()]
     text = open(args.text, 'r').read().split('\n')
+    if args.ignore == 'na':
+        ignore = []
+    else:
+        ignore = [str(x) for x in pd.read_csv(args.ignore)['Email'].tolist()]
+        
     subject = text[0]
     body = '\n'.join(text[1:])
     ol=win32com.client.Dispatch("outlook.application")
     olmailitem=0x0 #size of the new email
     for email in df:
         if email == 'nan':
-            print(f'found nan email[ {email}, continuing...')
+            print(f'found nan email- {email}, continuing...')
+            continue
+        if email in ignore:
+            print(f'ignoring {email} as it\'s already been sent')
             continue
         print('sending email:')
         newmail=ol.CreateItem(olmailitem)
@@ -37,7 +47,10 @@ def main(args):
         # newmail.Attachments.Add(attach)
         # To display the mail before sending it
         # newmail.Display() 
-        newmail.Send()
+        if args.debug:
+            print('debug...not sending')
+        else:
+            newmail.Send()
         time.sleep(1)
         print()
 
