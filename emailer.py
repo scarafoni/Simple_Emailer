@@ -23,12 +23,13 @@ def main(args):
         ignore = []
     else:
         ignore = [str(x) for x in pd.read_csv(args.ignore)['Email'].tolist()]
-        
+    
+    ignore_add = []
     subject = text[0]
     body = '\n'.join(text[1:])
     ol=win32com.client.Dispatch("outlook.application")
     olmailitem=0x0 #size of the new email
-    for email in df:
+    for email in df[:50]:
         if email == 'nan':
             print(f'found nan email- {email}, continuing...')
             continue
@@ -49,10 +50,17 @@ def main(args):
         # newmail.Display() 
         if args.debug:
             print('debug...not sending')
+            ignore_add.append(email)
+
         else:
             newmail.Send()
-        time.sleep(1)
+            ignore_add.append(email)
+        #time.sleep(0.25)
         print()
+        
+    new_df = pd.DataFrame(ignore+ignore_add, columns=['Email'])
+    new_df.to_csv('ignore2.csv', index=False)
+
 
 if __name__ == '__main__':
     args = parser.parse_args()
