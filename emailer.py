@@ -53,11 +53,17 @@ def send_gmail(email, subject, body, args):
     sender = "dscarafo@u.rochester.edu"
     recipients = [email]
     password = open('pw.txt','r').read().strip()
+    print(f'\t to: {email}')
+    print(f'\t subject: {subject}')
+    print(f'\t {body}')
     if args.debug:
         print('debug...not sending')
         return None
     else:
-        send_email(subject, body, sender, recipients, password)
+        try:
+            send_email(subject, body, sender, recipients, password)
+        except:
+            print('ERROR- unable to send email')
         return email
 
 def main(args):
@@ -85,11 +91,12 @@ def main(args):
             e = send_gmail(email, subject, body, args)
         if not e is None:
             ignore_add.append(e)
+        time.sleep(3)
 
         
     if not args.ignore == 'na':
         new_df = pd.DataFrame(ignore+ignore_add, columns=['Email'])
-        new_df.to_csv('ignore2.csv', index=False)
+        new_df.to_csv('ignore.csv', index=False)
 
 
 if __name__ == '__main__':
