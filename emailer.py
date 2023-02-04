@@ -5,16 +5,60 @@ Spyder Editor
 This is a temporary script file.
 """
 
-import win32com.client
+try:
+    import win32com.client
+except:
+    print('warning, no outlook capabilities supported')
+
 import pandas as pd
 import argparse
 import time
+import smtplib
+from email.mime.text import MIMEText
 
 parser = argparse.ArgumentParser()
 parser.add_argument('email_csv')
 parser.add_argument('text')
 parser.add_argument('--ignore', default='na')
 parser.add_argument('--debug', action='store_true')
+parser.add_argument('--service', default='outlook', choices=['outlook', 'gmail'])
+
+def send_outlook_email(email, subject, body, args):
+    ol=win32com.client.Dispatch("outlook.application")
+    olmailitem=0x0 #size of the new email
+    newmail=ol.CreateItem(olmailitem)
+    newmail.Subject= subject
+    newmail.To=email
+    newmail.Body= body
+    print(f'\t to: {email}')
+    print(f'\t subject: {subject}')
+    print(f'\t {body}')
+    if args.debug:
+        print('debug...not sending')
+        return None
+    else:
+        newmail.Send()
+        return email
+
+def send_gmail(email, subject, body, args):
+    def send_email(subject, body, sender, recipients, password):
+        msg = MIMEText(body)
+        msg['Subject'] = subject
+        msg['From'] = sender
+        msg['To'] = ', '.join(recipients)
+        smtp_server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        smtp_server.login(sender, password)
+        smtp_server.sendmail(sender, recipients, msg.as_string())
+        smtp_server.quit()
+    sender = "dscarafo@u.rochester.edu"
+    recipients = [email]
+    password = open('pw.txt','r').read().strip()
+    if args.debug:
+        print('debug...not sending')
+        return None
+    else:
+        send_email(subject, body, sender, recipients, password)
+        return email
 
 def main(args):
     df = [str(x) for x in pd.read_csv(args.email_csv)['Email'].tolist()]
@@ -27,39 +71,25 @@ def main(args):
     ignore_add = []
     subject = text[0]
     body = '\n'.join(text[1:])
-    ol=win32com.client.Dispatch("outlook.application")
-    olmailitem=0x0 #size of the new email
-    for email in df[:50]:
+    for email in df:
         if email == 'nan':
             print(f'found nan email- {email}, continuing...')
             continue
         if email in ignore:
             print(f'ignoring {email} as it\'s already been sent')
             continue
-        print('sending email:')
-        newmail=ol.CreateItem(olmailitem)
-        newmail.Subject= subject
-        newmail.To=email
-        newmail.Body= body
-        print(f'\t to: {email}')
-        print(f'\t subject: {subject}')
-        print(f'\t {body}')
-        # attach='C:\\Users\\admin\\Desktop\\Python\\Sample.xlsx'
-        # newmail.Attachments.Add(attach)
-        # To display the mail before sending it
-        # newmail.Display() 
-        if args.debug:
-            print('debug...not sending')
-            ignore_add.append(email)
-
-        else:
-            newmail.Send()
-            ignore_add.append(email)
-        #time.sleep(0.25)
-        print()
         
-    new_df = pd.DataFrame(ignore+ignore_add, columns=['Email'])
-    new_df.to_csv('ignore2.csv', index=False)
+        if args.service == 'outlook':
+            e = send_outlook_email(email, subject, body, args)
+        else:
+            e = send_gmail(email, subject, body, args)
+        if not e is None:
+            ignore_add.append(e)
+
+        
+    if not args.ignore == 'na':
+        new_df = pd.DataFrame(ignore+ignore_add, columns=['Email'])
+        new_df.to_csv('ignore2.csv', index=False)
 
 
 if __name__ == '__main__':
