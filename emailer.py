@@ -14,6 +14,7 @@ import pandas as pd
 import argparse
 import time
 import smtplib
+import tqdm
 from email.mime.text import MIMEText
 
 parser = argparse.ArgumentParser()
@@ -30,11 +31,10 @@ def send_outlook_email(email, subject, body, args):
     newmail.Subject= subject
     newmail.To=email
     newmail.Body= body
-    print(f'\t to: {email}')
-    print(f'\t subject: {subject}')
-    print(f'\t {body}')
+    # print(f'\t to: {email}')
+    # print(f'\t subject: {subject}')
+    # print(f'\t {body}')
     if args.debug:
-        print('debug...not sending')
         return None
     else:
         newmail.Send()
@@ -53,11 +53,10 @@ def send_gmail(email, subject, body, args):
     sender = "dscarafo@u.rochester.edu"
     recipients = [email]
     password = open('pw.txt','r').read().strip()
-    print(f'\t to: {email}')
-    print(f'\t subject: {subject}')
-    print(f'\t {body}')
+    # print(f'\t to: {email}')
+    # print(f'\t subject: {subject}')
+    # print(f'\t {body}')
     if args.debug:
-        print('debug...not sending')
         return None
     else:
         try:
@@ -77,14 +76,22 @@ def main(args):
     ignore_add = []
     subject = text[0]
     body = '\n'.join(text[1:])
-    for email in df:
+    pbar = tqdm.tqdm(df)
+    for email in pbar:
         if email == 'nan':
-            print(f'found nan email- {email}, continuing...')
+            m = f'found nan email- {email}, continuing...'
             continue
-        if email in ignore:
-            print(f'ignoring {email} as it\'s already been sent')
+        elif email in ignore:
+            m = f'ignoring {email} as it\'s already been sent'
             continue
-        
+        else:
+            m = f'email to send- {email}'
+        if args.debug:
+            d = 'debug...not sending'
+        else:
+            d = ''
+        pbar.set_description(f'{m}, {d}')
+
         if args.service == 'outlook':
             e = send_outlook_email(email, subject, body, args)
         else:
