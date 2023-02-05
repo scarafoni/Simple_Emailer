@@ -17,7 +17,7 @@ def main():
             emails.extend(df['Email'].tolist())
     # first 300 entries are for outlook
     outlook_emails = pd.DataFrame(emails[:250], columns=['Email'])
-    outlook_emails.to_csv('oulook_input.csv', index=False)
+    outlook_emails.to_csv('outlook_input.csv', index=False)
     
     gmail_emails = pd.DataFrame(emails[250:], columns=['Email'])
     gmail_emails.to_csv('gmail_input.csv', index=False)

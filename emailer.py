@@ -94,7 +94,8 @@ def main(args):
         time.sleep(3)
 
         
-    if not args.ignore == 'na':
+    if not args.ignore == 'na' and not args.debug:
+        print('saving new ignore list...')
         new_df = pd.DataFrame(ignore+ignore_add, columns=['Email'])
         new_df.to_csv('ignore.csv', index=False)
 
