@@ -99,9 +99,7 @@ def main(args):
         if not e is None:
             ignore_add.append(e)
         
-        if not args.debug:
-            time.sleep(3)
-
+        time.sleep(3)
         
     if not args.ignore == 'na' and not args.debug:
         print('updatng ignore email list')
