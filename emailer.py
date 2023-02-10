@@ -125,11 +125,11 @@ def main(args):
             e = send_gmail(email, subject, body, args)
         if not e is None:
             ignore_add.append(e)
+        
         time.sleep(3)
-
         
     if not args.ignore == 'na' and not args.debug:
-        print('saving new ignore list...')
+        print('updatng ignore email list')
         new_df = pd.DataFrame(ignore+ignore_add, columns=['Email'])
         new_df.to_csv('ignore.csv', index=False)
 
