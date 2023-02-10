@@ -16,13 +16,40 @@ import time
 import smtplib
 import tqdm
 from email.mime.text import MIMEText
+from email.message import EmailMessage
 
 parser = argparse.ArgumentParser()
 parser.add_argument('email_csv')
 parser.add_argument('text')
 parser.add_argument('--ignore', default='na')
 parser.add_argument('--debug', action='store_true')
-parser.add_argument('--service', default='outlook', choices=['outlook', 'gmail'])
+parser.add_argument('--service', default='outlook', choices=['outlook', 'gmail', 'namecheap'], default='namecheap')
+
+def send_email_namecheap(email, subject, body, args):
+    sender_email = 'dan@scarafoni.com'
+    receiver_email  = email
+    smtp_server = 'mail.privateemail.com'
+    port = 465
+    login = "dan@scarfoni.com"
+    password = open('pw_namecheap.txt','r').read().strip()
+    message = EmailMessage()
+    message["Subject"] = subject
+    message["From"] = f"Dan Scarafoni <{sender_email}>"
+    message["To"] = receiver_email
+    content = body
+    message.set_content(content)
+    server = smtplib.SMTP_SSL(smtp_server, port)
+    server.login(login, password)
+    if args.debug:
+        e = None
+    else:
+        try:
+            server.send_message(message)
+        except:
+            print('ERROR- unable to send email')
+        e = email
+    server.quit()
+    return e
 
 def send_outlook_email(email, subject, body, args):
     ol=win32com.client.Dispatch("outlook.application")
