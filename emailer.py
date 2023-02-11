@@ -23,14 +23,14 @@ parser.add_argument('email_csv')
 parser.add_argument('text')
 parser.add_argument('--ignore', default='na')
 parser.add_argument('--debug', action='store_true')
-parser.add_argument('--service', default='outlook', choices=['outlook', 'gmail', 'namecheap'], default='namecheap')
+parser.add_argument('--service', default='namecheap', choices=['outlook', 'gmail', 'namecheap'])
 
 def send_email_namecheap(email, subject, body, args):
     sender_email = 'dan@scarafoni.com'
     receiver_email  = email
     smtp_server = 'mail.privateemail.com'
     port = 465
-    login = "dan@scarfoni.com"
+    login = "dan@scarafoni.com"
     password = open('pw_namecheap.txt','r').read().strip()
     message = EmailMessage()
     message["Subject"] = subject
@@ -121,12 +121,14 @@ def main(args):
 
         if args.service == 'outlook':
             e = send_outlook_email(email, subject, body, args)
-        else:
+        elif args.service == 'gmail':
             e = send_gmail(email, subject, body, args)
+        else:
+            e = send_email_namecheap(email, subject, body, args)
         if not e is None:
             ignore_add.append(e)
         
-        time.sleep(3)
+        time.sleep(8)
         
     if not args.ignore == 'na' and not args.debug:
         print('updatng ignore email list')
