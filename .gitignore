@@ -132,3 +132,5 @@ dmypy.json
 # Dan's stuff
 *.csv
 *.txt
+*.zip
+*.sh

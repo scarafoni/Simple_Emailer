@@ -16,7 +16,13 @@ import time
 import smtplib
 import tqdm
 from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email.mime.application import MIMEApplication
+from email.mime.multipart import MIMEMultipart
+from email.encoders import encode_base64
 from email.message import EmailMessage
+import  os
+import traceback
 
 parser = argparse.ArgumentParser()
 parser.add_argument('email_csv')
@@ -24,6 +30,20 @@ parser.add_argument('text')
 parser.add_argument('--ignore', default='na')
 parser.add_argument('--debug', action='store_true')
 parser.add_argument('--service', default='namecheap', choices=['outlook', 'gmail', 'namecheap'])
+parser.add_argument('--attachment', default='none')
+
+
+def add_attachment(f, message): 
+    with open(f, "rb") as fil:
+        part = MIMEApplication(
+            fil.read(),
+            Name=os.path.basename(f)
+        )
+    # After the file is closed
+    part['Content-Disposition'] = 'attachment; filename="%s"' % os.path.basename(f)
+    message.attach(part)
+
+    return message
 
 def send_email_namecheap(email, subject, body, args):
     sender_email = 'dan@scarafoni.com'
@@ -32,12 +52,17 @@ def send_email_namecheap(email, subject, body, args):
     port = 465
     login = "dan@scarafoni.com"
     password = open('pw_namecheap.txt','r').read().strip()
-    message = EmailMessage()
+    # message = EmailMessage()
+    message = MIMEMultipart()
     message["Subject"] = subject
     message["From"] = f"Dan Scarafoni <{sender_email}>"
     message["To"] = receiver_email
     content = body
-    message.set_content(content)
+    # print(content)
+    # message.set_content(content)
+    message.attach(MIMEText(content, 'plain'))
+    if args.attachment  is not 'none':
+        message = add_attachment(args.attachment, message)
     server = smtplib.SMTP_SSL(smtp_server, port)
     server.login(login, password)
     if args.debug:
@@ -47,6 +72,7 @@ def send_email_namecheap(email, subject, body, args):
             server.send_message(message)
         except:
             print('ERROR- unable to send email')
+            traceback.print_exc()
         e = email
     server.quit()
     return e
@@ -128,13 +154,12 @@ def main(args):
         if not e is None:
             ignore_add.append(e)
         
-        time.sleep(8)
-        
-    if not args.ignore == 'na' and not args.debug:
-        print('updatng ignore email list')
-        new_df = pd.DataFrame(ignore+ignore_add, columns=['Email'])
-        new_df.to_csv('ignore.csv', index=False)
+        if not args.ignore == 'na' and not args.debug:
+            new_df = pd.DataFrame(ignore+ignore_add, columns=['Email'])
+            new_df.to_csv('ignore.csv', index=False)
 
+        t = 1 if args.debug else 10
+        time.sleep(t)
 
 if __name__ == '__main__':
     args = parser.parse_args()
