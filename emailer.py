@@ -131,7 +131,7 @@ def main(args):
     body = '\n'.join(text[1:])
     pbar = tqdm.tqdm(df)
     for email in pbar:
-        if email == 'nan':
+        if email in ['nan', 'none@none.com']:
             m = f'found nan email- {email}, continuing...'
             continue
         elif email in ignore:
