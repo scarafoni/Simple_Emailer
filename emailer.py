@@ -46,11 +46,11 @@ def add_attachment(f, message):
     return message
 
 def send_email_namecheap(email, subject, body, args):
-    sender_email = 'dan@scarafoni.com'
+    sender_email = 'dan@julianhealth.com'
     receiver_email  = email
     smtp_server = 'mail.privateemail.com'
     port = 465
-    login = "dan@scarafoni.com"
+    login = "dan@julianhealth.com"
     password = open('pw_namecheap.txt','r').read().strip()
     # message = EmailMessage()
     message = MIMEMultipart()
@@ -119,7 +119,7 @@ def send_gmail(email, subject, body, args):
         return email
 
 def main(args):
-    df = [str(x) for x in pd.read_csv(args.email_csv)['Email'].tolist()]
+    df = [str(x) for x in pd.read_csv(args.email_csv)['Email'].tolist() if len(x) > 0]
     text = open(args.text, 'r').read().split('\n')
     if args.ignore == 'na':
         ignore = []
